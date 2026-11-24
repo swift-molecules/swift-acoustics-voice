@@ -1,4 +1,6 @@
 import Acoustics_Voice
+import Fourier
+import Numeric
 import Testing
 
 @Suite struct `Acoustics.Voice Tests` {}
@@ -33,8 +35,8 @@ extension `Acoustics.Voice Tests` {
         )
     }
 
-    /// The fundamental of a stretch of pressure, in hertz: the shortest lag whose autocorrelation peak is within 10% of the highest between
-    /// `low` and `high` hertz, refined by a parabola.
+    /// The fundamental of a stretch of pressure, in hertz: the shortest lag between `low` and `high` hertz whose
+    /// autocorrelation peak is within 10% of the highest, refined by a parabola.
     static func fundamental(_ samples: [Double], rate: Double, low: Double, high: Double) -> Double {
         let shortest = Int(rate / high)
         let longest = Int(rate / low)
@@ -60,5 +62,34 @@ extension `Acoustics.Voice Tests` {
         let offset = 0.5 * (values[best - 1] - values[best + 1])
             / (values[best - 1] - 2 * values[best] + values[best + 1])
         return rate / (Double(shortest - 1 + best) + offset)
+    }
+
+    /// The power spectrum of a stretch under a Hann window, zero-padded to 2¹⁶, with each bin's frequency.
+    static func spectrum(_ samples: [Double], rate: Double) -> [(frequency: Double, power: Double)] {
+        let n = 1 << 16
+        let count = samples.count
+        var padded = [Double](repeating: 0, count: n)
+        for t in 0..<Swift.min(count, n) {
+            padded[t] = samples[t] * (0.5 - 0.5 * Double.cos(2 * Double.pi * Double(t) / Double(count)))
+        }
+        guard let transform = try? Fourier.Transform<Double>(count: Cardinal(UInt(n))),
+            let bins = try? transform.forward(real: padded)
+        else { return [] }
+        return bins.enumerated().map { k, bin in
+            let m = bin.magnitude().value
+            return (Double(k) * rate / Double(n), m * m)
+        }
+    }
+
+    /// The spectral centroid, in hertz: the power-weighted mean frequency.
+    static func centroid(_ samples: [Double], rate: Double) -> Double {
+        let bins = spectrum(samples, rate: rate)
+        let total = bins.reduce(0) { $0 + $1.power }
+        return bins.reduce(0) { $0 + $1.frequency * $1.power } / total
+    }
+
+    /// The frequency of the spectrum's strongest bin, in hertz.
+    static func dominant(_ samples: [Double], rate: Double) -> Double {
+        spectrum(samples, rate: rate).max { $0.power < $1.power }?.frequency ?? 0
     }
 }

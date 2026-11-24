@@ -1,7 +1,13 @@
 # swift-acoustics-voice
 
-Use this package when a sound is a voice: a vocal tract and its source, such as an animal's call. Being built; see swift-institute/Issues#350.
+Use this package when a sound is a voice: air driven through vocal folds or a bird's syrinx into a vocal tract, such as an animal's call. An `Acoustics.Voice` is a `Tract` (a tube of varying area, glottis to mouth), a `Source` (`Folds`, two masses after Ishizaka and Flanagan in Steinecke and Herzel's form, or a `Syrinx`, Titze's one-mass labium with a surface wave as Laje, Gardner and Mindlin apply it) and a `Call` (the pressure, tension and mouth opening over time). `render(rate:air:distance:)` gives the sound pressure in front of the mouth. `Acoustics.Voice.dog`, `.cat`, `.donkey` and `.rooster` are ready made, each value's source in its documentation: the dog's from the literature, the cat's tract and folds from excerpts and secondary reports, the donkey's from the horse, and the rooster's labia assumed, since nothing on them could be read. `Tract.formants(count:air:mouth:)` gives a tract's resonances.
 
 ## Laws
 
-- None yet.
+- The tract is a Kelly–Lochbaum waveguide of equal cylindrical sections, each crossed in one sample, at a rate of the sections times c over the tract's length; it is at least twice the output rate, and the output is taken down through a windowed-sinc low-pass at 0.45 of the output rate. Every change of area falls on a junction.
+- A tube closed at the source and open at the mouth rings at (2n − 1)c / 4L, and two tubes where A₁ tan kL₁ = A₂ cot kL₂, both within 0.3%. A radiating mouth (Flanagan's baffled piston, R ∥ L) lowers the first resonance to c / 4(L + 8a / 3π) within 1%. Formants scale as one over length.
+- Each section loses Kirchhoff's visco-thermal attenuation for its radius, at the tube's lowest closed–open resonance.
+- The source's flow meets the tract's input pressure through Bernoulli's law, U = 2D / (Z + √(Z² + 2ρ|D| / a²)), so the source feels the tract and can lock to it: folds or labia tuned past the tract's first resonance break up or fall silent.
+- The tension Q multiplies stiffnesses and divides masses, so the human folds' pitch, 133 Hz at 800 Pa, is proportional to it; below the threshold pressure they stay still. Folds twice as large in every length phonate about an octave lower.
+- The radiated pressure is (ρ / 4πr) dU/dt, U the flow out of the mouth.
+- Tested against measurements: the dog's formant dispersion (792 Hz) against growls and barks, and its bark's pitch (367 Hz) against a measured bark's; the cat's meow (751 Hz in the middle, spectral centroid 1174 Hz) against measured meows; the donkey's formants against a horse's and its hee (450 Hz) against a whinny's pitch; the rooster's strongest band above 1 kHz (1813 Hz) against crows'. Each tension is set to its call, so a pitch test checks the call, not a prediction.
