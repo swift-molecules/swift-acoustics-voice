@@ -16,12 +16,30 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/swift-molecules/swift-acoustics.git", branch: "main"),
+        .package(url: "https://github.com/swift-molecules/swift-fourier.git", branch: "main"),
+        .package(url: "https://github.com/swift-atoms/swift-numeric.git", branch: "main"),
+        .package(url: "https://github.com/swift-atoms/swift-space.git", branch: "main"),
+        .package(url: "https://github.com/swift-atoms/swift-frequency.git", branch: "main"),
+        .package(url: "https://github.com/swift-atoms/swift-pressure.git", branch: "main"),
+        .package(url: "https://github.com/swift-atoms/swift-flow.git", branch: "main"),
+        .package(url: "https://github.com/swift-atoms/swift-mass.git", branch: "main"),
+        .package(url: "https://github.com/swift-atoms/swift-stiffness.git", branch: "main"),
+        .package(url: "https://github.com/swift-atoms/swift-loss.git", branch: "main"),
     ],
     targets: [
         .target(
             name: "Acoustics Voice",
             dependencies: [
                 .product(name: "Acoustics", package: "swift-acoustics"),
+                .product(name: "Fourier", package: "swift-fourier"),
+                .product(name: "Numeric", package: "swift-numeric"),
+                .product(name: "Space", package: "swift-space"),
+                .product(name: "Frequency", package: "swift-frequency"),
+                .product(name: "Pressure", package: "swift-pressure"),
+                .product(name: "Flow", package: "swift-flow"),
+                .product(name: "Mass", package: "swift-mass"),
+                .product(name: "Stiffness", package: "swift-stiffness"),
+                .product(name: "Loss", package: "swift-loss"),
             ]
         ),
         .testTarget(
