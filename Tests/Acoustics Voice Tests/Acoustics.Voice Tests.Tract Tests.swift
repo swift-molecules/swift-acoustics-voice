@@ -26,12 +26,14 @@ extension `Acoustics.Voice Tests`.Tract {
     func `Two tubes ring where their impedances match`() throws {
         // Closed at the source, open at the mouth: A₁ tan(kL₁) = A₂ cot(kL₂), solved by bisection.
         let (l1, l2, a1, a2) = (0.09, 0.08, 1e-4, 7e-4)
-        let tract = Acoustics.Voice.Tract(length: Base.metres(l1 + l2), areas: [
-            Base.area(a1), Base.area(a1), Base.area(a1), Base.area(a1), Base.area(a1), Base.area(a1),
-            Base.area(a1), Base.area(a1), Base.area(a1),
-            Base.area(a2), Base.area(a2), Base.area(a2), Base.area(a2), Base.area(a2), Base.area(a2),
-            Base.area(a2), Base.area(a2),
-        ])
+        let tract = Acoustics.Voice.Tract(
+            length: Base.metres(l1 + l2),
+            areas: [
+                Base.area(a1), Base.area(a1), Base.area(a1), Base.area(a1), Base.area(a1), Base.area(a1),
+                Base.area(a1), Base.area(a1), Base.area(a1),
+                Base.area(a2), Base.area(a2), Base.area(a2), Base.area(a2), Base.area(a2), Base.area(a2),
+                Base.area(a2), Base.area(a2),
+            ])
         func g(_ f: Double) -> Double {
             let k = 2 * Double.pi * f / Base.c
             return a1 * Double.sin(k * l1) * Double.sin(k * l2) - a2 * Double.cos(k * l1) * Double.cos(k * l2)

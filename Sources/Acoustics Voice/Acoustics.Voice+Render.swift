@@ -57,7 +57,7 @@ extension Acoustics.Voice {
         return (0..<count).map { m in
             let time = Double(m) / target
             let first = Swift.max(0, Int(((time - half) * source).rounded(.up)))
-            let last = Swift.min(input.count - 1, Int(((time + half) * source).rounded(.down)))
+            let last = Swift.min(input.endIndex - 1, Int(((time + half) * source).rounded(.down)))
             guard first <= last else { return 0 }
             var sum = 0.0
             for n in first...last {

@@ -40,7 +40,7 @@ extension `Acoustics.Voice Tests` {
     static func fundamental(_ samples: [Double], rate: Double, low: Double, high: Double) -> Double {
         let shortest = Int(rate / high)
         let longest = Int(rate / low)
-        let n = samples.count - longest - 1
+        let n = samples.endIndex - longest - 1
         guard n > 0 else { return 0 }
         func correlation(_ lag: Int) -> Double {
             var sum = 0.0
@@ -54,12 +54,13 @@ extension `Acoustics.Voice Tests` {
             return sum / ((a * b).squareRoot() + 1e-300)
         }
         let values = (shortest - 1...longest + 1).map(correlation)
-        let peaks = (1..<(values.count - 1)).filter { i in
+        let peaks = (1..<(values.endIndex - 1)).filter { i in
             values[i] >= values[i - 1] && values[i] >= values[i + 1]
         }
         let highest = peaks.map { values[$0] }.max() ?? 0
         guard let best = peaks.first(where: { values[$0] >= 0.9 * highest }) else { return 0 }
-        let offset = 0.5 * (values[best - 1] - values[best + 1])
+        let offset =
+            0.5 * (values[best - 1] - values[best + 1])
             / (values[best - 1] - 2 * values[best] + values[best + 1])
         return rate / (Double(shortest - 1 + best) + offset)
     }

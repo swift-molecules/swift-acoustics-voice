@@ -15,7 +15,7 @@ extension Acoustics.Voice {
     /// α = (1 / ac) √(ωμ / 2ρ) (1 + (γ − 1) / √Pr), taken at the tube's lowest closed–open resonance c / 4L.
     struct Waveguide {
         /// Sections, and the rate they are stepped at, per second.
-        let count: Int
+        let sections: Int
         let rate: Double
         let density: Double
         let speed: Double
@@ -36,7 +36,7 @@ extension Acoustics.Voice {
 
         init(tract: Tract, air: Acoustics.Air, sections: Int, mouth ending: Tract.Mouth) {
             let length = tract.length.underlying
-            self.count = sections
+            self.sections = sections
             self.speed = air.speed.underlying
             self.density = air.density.underlying
             self.rate = Double(sections) * speed / length
@@ -83,15 +83,15 @@ extension Acoustics.Voice.Waveguide {
     mutating func shape(_ areas: [Double]) {
         let delta = speed / rate
         impedance = areas.map { density * speed / $0 }
-        junction = (0..<(count - 1)).map { i in (areas[i] - areas[i + 1]) / (areas[i] + areas[i + 1]) }
+        junction = areas.indices.dropLast().map { i in (areas[i] - areas[i + 1]) / (areas[i] + areas[i + 1]) }
         gain = areas.map { area in
             let radius = (area / Double.pi).squareRoot()
             return Double.exp(-attenuation / radius * delta)
         }
         // The baffled piston's R ∥ L, by the bilinear transform s = 2 rate (1 − z⁻¹) / (1 + z⁻¹), as the
         // reflection b / f = (Zr − Z) / (Zr + Z) of the last section's impedance Z.
-        let area = areas[count - 1]
-        let z = impedance[count - 1]
+        let area = areas[sections - 1]
+        let z = impedance[sections - 1]
         let r = 128 * density * speed / (9 * Double.pi * Double.pi * area)
         let l = 8 * density * (area / Double.pi).squareRoot() / (3 * Double.pi * area)
         let k = 2 * rate * l
@@ -106,7 +106,7 @@ extension Acoustics.Voice.Waveguide {
 
     /// One sample, with the source letting `flow` through, in cubic metres per second.
     mutating func step(flow: Double) {
-        let last = count - 1
+        let last = sections - 1
         nextForward[0] = gain[0] * (flow + backward[0])
         for i in 0..<last {
             let k = junction[i]

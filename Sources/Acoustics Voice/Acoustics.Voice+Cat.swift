@@ -13,14 +13,15 @@ extension Acoustics.Voice {
         Self(
             tract: .uniform(length: Space.Physical.metres(0.08), area: Area<Space.Physical>.amount(1.5e-4)),
             source: .folds(.human.scaled(by: 7.5 / 14.0)),
-            call: Call(points: [
-                Cat.point(0, 0, 0.85, 0.3e-4),
-                Cat.point(0.06, 1000, 0.9, 0.5e-4),
-                Cat.point(0.25, 1000, 1.08, 2.5e-4),
-                Cat.point(0.45, 1000, 0.95, 1.2e-4),
-                Cat.point(0.56, 600, 0.8, 0.4e-4),
-                Cat.point(0.62, 0, 0.75, 0.4e-4),
-            ].map { $0.scaled(tension: Cat.tension) })
+            call: Call(
+                points: [
+                    Cat.point(0, 0, 0.85, 0.3e-4),
+                    Cat.point(0.06, 1000, 0.9, 0.5e-4),
+                    Cat.point(0.25, 1000, 1.08, 2.5e-4),
+                    Cat.point(0.45, 1000, 0.95, 1.2e-4),
+                    Cat.point(0.56, 600, 0.8, 0.4e-4),
+                    Cat.point(0.62, 0, 0.75, 0.4e-4),
+                ].map { $0.scaled(tension: Cat.tension) })
         )
     }
 

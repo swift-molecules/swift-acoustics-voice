@@ -21,9 +21,9 @@ extension Acoustics.Voice.Spectrum {
         let reach = Swift.max(1, Int(width / bin))
         var result: [Double] = []
         var k = 1
-        while k < magnitude.count - 1 {
+        while k < magnitude.endIndex - 1 {
             let lower = Swift.max(0, k - reach)
-            let upper = Swift.min(magnitude.count - 1, k + reach)
+            let upper = Swift.min(magnitude.endIndex - 1, k + reach)
             var highest = true
             for j in lower...upper where j != k && magnitude[j] >= magnitude[k] {
                 highest = false

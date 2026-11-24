@@ -102,7 +102,8 @@ extension `Acoustics.Voice Tests`.Animal {
         let last = Self.stretch(crow, 0.66, 1.47)
         let f0 = Base.fundamental(last, rate: Self.rate, low: 150, high: 1500)
         #expect(f0 > 300 && f0 < resonance, "\(f0) Hz, resonance \(resonance) Hz")
-        let band = Base.spectrum(last, rate: Self.rate)
+        let band =
+            Base.spectrum(last, rate: Self.rate)
             .filter { $0.frequency > 1000 && $0.frequency < 4000 }
             .max { $0.power < $1.power }?.frequency ?? 0
         #expect(band > 1500 && band < 2500, "\(band) Hz")

@@ -59,7 +59,7 @@ extension Acoustics.Voice.Call {
                 a.mouth.underlying + w * (b.mouth.underlying - a.mouth.underlying)
             )
         }
-        let last = points[points.count - 1]
+        guard let last = points.last else { return (0, 1, 0) }
         return (last.pressure.underlying, last.tension, last.mouth.underlying)
     }
 }
