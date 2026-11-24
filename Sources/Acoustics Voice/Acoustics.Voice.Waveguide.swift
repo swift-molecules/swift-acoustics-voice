@@ -12,14 +12,19 @@ extension Acoustics.Voice {
     ///
     /// Each section loses the visco-thermal boundary-layer attenuation of a tube of its radius a (Kirchhoff; in
     /// the form of Keefe 1984, J. Acoust. Soc. Am. 75, 58, eq. 13 for large shear numbers),
-    /// α = (1 / ac) √(ωμ / 2ρ) (1 + (γ − 1) / √Pr), taken at the tube's lowest closed–open resonance c / 4L.
+    /// α = (1 / ac) √(ωμ / 2ρ) (1 + (γ − 1) / √Pr), taken at the tube's lowest closed–open resonance c / 4L, with γ = 1.4 and Pr = 0.71 for air near room
+    /// temperature (Keefe 1984, Table I).
+    ///
+    /// The mouth's baffled piston, R ∥ L, is taken to the waveguide's rate by the bilinear transform
+    /// s = 2 rate (1 − z⁻¹) / (1 + z⁻¹), as the reflection b / f = (Zr − Z) / (Zr + Z) of the last section's
+    /// impedance Z.
     struct Waveguide {
         /// Sections, and the rate they are stepped at, per second.
         let sections: Int
         let rate: Double
         let density: Double
         let speed: Double
-        let ending: Tract.Mouth
+        let ending: Acoustics.Voice.Mouth
         let attenuation: Double
         /// ρc / A of each section.
         var impedance: [Double]
@@ -32,16 +37,15 @@ extension Acoustics.Voice {
         var backward: [Double]
         var nextForward: [Double]
         var nextBackward: [Double]
-        var mouth: Mouth
+        var radiation: Acoustics.Voice.Radiation
 
-        init(tract: Tract, air: Acoustics.Air, sections: Int, mouth ending: Tract.Mouth) {
+        init(tract: Tract, air: Acoustics.Air, sections: Int, mouth ending: Acoustics.Voice.Mouth) {
             let length = tract.length.underlying
             self.sections = sections
             self.speed = air.speed.underlying
             self.density = air.density.underlying
             self.rate = Double(sections) * speed / length
             self.ending = ending
-            // γ = 1.4 and Pr = 0.71 for air near room temperature (Keefe 1984, Table I).
             let thermal = 1 + (1.4 - 1) / 0.71.squareRoot()
             let omega = 2 * Double.pi * speed / (4 * length)
             self.attenuation = (omega * air.viscosity.underlying / (2 * density)).squareRoot() * thermal / speed
@@ -52,20 +56,9 @@ extension Acoustics.Voice {
             self.backward = [Double](repeating: 0, count: sections)
             self.nextForward = forward
             self.nextBackward = backward
-            self.mouth = Mouth()
+            self.radiation = Acoustics.Voice.Radiation()
             shape(Self.areas(of: tract, sections: sections))
         }
-    }
-}
-
-extension Acoustics.Voice.Waveguide {
-    /// The state of the mouth's end: its radiation filter, and the flow out of it.
-    struct Mouth {
-        var flow: Double = 0
-        var numerator: (Double, Double) = (0, 0)
-        var denominator: (Double, Double) = (1, 0)
-        var lastForward: Double = 0
-        var lastReflected: Double = 0
     }
 }
 
@@ -88,15 +81,13 @@ extension Acoustics.Voice.Waveguide {
             let radius = (area / Double.pi).squareRoot()
             return Double.exp(-attenuation / radius * delta)
         }
-        // The baffled piston's R ∥ L, by the bilinear transform s = 2 rate (1 − z⁻¹) / (1 + z⁻¹), as the
-        // reflection b / f = (Zr − Z) / (Zr + Z) of the last section's impedance Z.
         let area = areas[sections - 1]
         let z = impedance[sections - 1]
         let r = 128 * density * speed / (9 * Double.pi * Double.pi * area)
         let l = 8 * density * (area / Double.pi).squareRoot() / (3 * Double.pi * area)
         let k = 2 * rate * l
-        mouth.numerator = (k * (r - z) - z * r, -k * (r - z) - z * r)
-        mouth.denominator = (k * (r + z) + z * r, -k * (r + z) + z * r)
+        radiation.numerator = (k * (r - z) - z * r, -k * (r - z) - z * r)
+        radiation.denominator = (k * (r + z) + z * r, -k * (r + z) + z * r)
     }
 
     /// The pressure at the source end, in pascals, if the source lets the flow `flow` through now.
@@ -108,7 +99,7 @@ extension Acoustics.Voice.Waveguide {
     mutating func step(flow: Double) {
         let last = sections - 1
         nextForward[0] = gain[0] * (flow + backward[0])
-        for i in 0..<last {
+        for i in junction.indices {
             let k = junction[i]
             let f = forward[i]
             let b = backward[i + 1]
@@ -120,15 +111,16 @@ extension Acoustics.Voice.Waveguide {
         switch ending {
         case .open:
             reflected = -f
+
         case .radiating:
             reflected =
-                (mouth.numerator.0 * f + mouth.numerator.1 * mouth.lastForward - mouth.denominator.1
-                    * mouth.lastReflected) / mouth.denominator.0
-            mouth.lastForward = f
-            mouth.lastReflected = reflected
+                (radiation.numerator.0 * f + radiation.numerator.1 * radiation.lastForward - radiation.denominator.1
+                    * radiation.lastReflected) / radiation.denominator.0
+            radiation.lastForward = f
+            radiation.lastReflected = reflected
         }
         nextBackward[last] = gain[last] * reflected
-        mouth.flow = f - reflected
+        radiation.flow = f - reflected
         swap(&forward, &nextForward)
         swap(&backward, &nextBackward)
     }

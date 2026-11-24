@@ -26,8 +26,8 @@ extension `Acoustics.Voice Tests` {
         _ pressure: Double,
         tension: Double,
         mouth: Double
-    ) -> Acoustics.Voice.Call.Point {
-        Acoustics.Voice.Call.Point(
+    ) -> Acoustics.Voice.Moment {
+        Acoustics.Voice.Moment(
             time: Time.Duration.amount(time),
             pressure: Pressure.pascals(pressure),
             tension: tension,
@@ -46,7 +46,7 @@ extension `Acoustics.Voice Tests` {
             var sum = 0.0
             var a = 0.0
             var b = 0.0
-            for t in 0..<n {
+            for t in samples.indices.prefix(n) {
                 sum += samples[t] * samples[t + lag]
                 a += samples[t] * samples[t]
                 b += samples[t + lag] * samples[t + lag]
@@ -70,12 +70,15 @@ extension `Acoustics.Voice Tests` {
         let n = 1 << 16
         let count = samples.count
         var padded = [Double](repeating: 0, count: n)
-        for t in 0..<Swift.min(count, n) {
+        for t in samples.indices.prefix(n) {
             padded[t] = samples[t] * (0.5 - 0.5 * Double.cos(2 * Double.pi * Double(t) / Double(count)))
         }
-        guard let transform = try? Fourier.Transform<Double>(count: Cardinal(UInt(n))),
-            let bins = try? transform.forward(real: padded)
-        else { return [] }
+        let bins: [Complex.Number<Double>]
+        do throws(Fourier.Error) {
+            bins = try Fourier.Transform<Double>(count: Cardinal(UInt(n))).forward(real: padded)
+        } catch {
+            return []
+        }
         return bins.enumerated().map { k, bin in
             let m = bin.magnitude().value
             return (Double(k) * rate / Double(n), m * m)

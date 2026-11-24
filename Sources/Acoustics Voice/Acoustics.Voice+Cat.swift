@@ -10,37 +10,26 @@ extension Acoustics.Voice {
     ///   tabulated by Tavernier et al. 2020, J. Vet. Sci. 21, e18, Table 2; range 221–1185 Hz).
     /// - Mouth: 0.3 cm² at the start, 2.5 cm² open, back to 0.4 cm²; not from a measurement.
     public static var cat: Self {
-        Self(
-            tract: .uniform(length: Space.Physical.metres(0.08), area: Area<Space.Physical>.amount(1.5e-4)),
-            source: .folds(.human.scaled(by: 7.5 / 14.0)),
-            call: Call(
-                points: [
-                    Cat.point(0, 0, 0.85, 0.3e-4),
-                    Cat.point(0.06, 1000, 0.9, 0.5e-4),
-                    Cat.point(0.25, 1000, 1.08, 2.5e-4),
-                    Cat.point(0.45, 1000, 0.95, 1.2e-4),
-                    Cat.point(0.56, 600, 0.8, 0.4e-4),
-                    Cat.point(0.62, 0, 0.75, 0.4e-4),
-                ].map { $0.scaled(tension: Cat.tension) })
-        )
-    }
-
-    enum Cat {
-        static let tension = 2.7
-
-        static func point(_ time: Double, _ pressure: Double, _ tension: Double, _ mouth: Double) -> Call.Point {
-            Call.Point(
+        let tension = 2.7
+        func moment(_ time: Double, _ pressure: Double, _ q: Double, _ mouth: Double) -> Moment {
+            Moment(
                 time: Time.Duration.amount(time),
                 pressure: Pressure.pascals(pressure),
-                tension: tension,
+                tension: q * tension,
                 mouth: Area<Space.Physical>.amount(mouth)
             )
         }
-    }
-}
-
-extension Acoustics.Voice.Call.Point {
-    func scaled(tension factor: Double) -> Self {
-        Self(time: time, pressure: pressure, tension: tension * factor, mouth: mouth)
+        return Self(
+            tract: .uniform(length: Space.Physical.metres(0.08), area: Area<Space.Physical>.amount(1.5e-4)),
+            source: .folds(.human.scaled(by: 7.5 / 14.0)),
+            call: Call(points: [
+                moment(0, 0, 0.85, 0.3e-4),
+                moment(0.06, 1000, 0.9, 0.5e-4),
+                moment(0.25, 1000, 1.08, 2.5e-4),
+                moment(0.45, 1000, 0.95, 1.2e-4),
+                moment(0.56, 600, 0.8, 0.4e-4),
+                moment(0.62, 0, 0.75, 0.4e-4),
+            ])
+        )
     }
 }

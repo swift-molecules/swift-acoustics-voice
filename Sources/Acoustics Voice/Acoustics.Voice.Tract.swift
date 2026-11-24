@@ -33,16 +33,16 @@ extension Acoustics.Voice.Tract {
     /// The resonances of the tube driven by flow at a closed source: the peaks of the flow out of the mouth over
     /// the flow in, ascending, from the waveguide's impulse response.
     public func formants(
-        count: Int,
+        count: Cardinal,
         air: Acoustics.Air = .room,
-        mouth: Mouth = .radiating
+        mouth: Acoustics.Voice.Mouth = .radiating
     ) -> [Frequency.Value<Double>] {
         var guide = Acoustics.Voice.Waveguide(tract: self, air: air, sections: sections(atLeast: 64), mouth: mouth)
         let n = 1 << 16
         var response = [Double](repeating: 0, count: n)
-        for t in 0..<n {
+        for t in response.indices {
             guide.step(flow: t == 0 ? 1 : 0)
-            response[t] = guide.mouth.flow
+            response[t] = guide.radiation.flow
         }
         let peaks = Acoustics.Voice.Spectrum.peaks(of: response, rate: guide.rate, width: 40)
         return peaks.prefix(count).map { Frequency.hertz($0) }

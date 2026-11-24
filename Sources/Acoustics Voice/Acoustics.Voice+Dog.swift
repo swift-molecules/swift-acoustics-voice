@@ -15,13 +15,14 @@ extension Acoustics.Voice {
     ///   up. It is the one value set to the call.
     /// - Mouth: opening from 3 to 14 cm² through the bark, falling to 6 cm²; not from a measurement.
     public static var dog: Self {
-        Self(
+        let tension = 2.25
+        return Self(
             tract: .uniform(length: Space.Physical.metres(0.206), area: Area<Space.Physical>.amount(7e-4)),
             source: .folds(.human.scaled(by: 10.0 / 14.0)),
             call: .phrases(
                 [
                     (
-                        start: 0.02, end: 0.2, pressure: 1961, tension: (Dog.tension, 0.85 * Dog.tension),
+                        start: 0.02, end: 0.2, pressure: 1961, tension: (tension, 0.85 * tension),
                         mouth: (3e-4, 14e-4)
                     )
                 ],
@@ -30,7 +31,4 @@ extension Acoustics.Voice {
         )
     }
 
-    enum Dog {
-        static let tension = 2.25
-    }
 }

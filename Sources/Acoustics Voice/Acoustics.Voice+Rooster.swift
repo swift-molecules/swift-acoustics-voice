@@ -13,7 +13,7 @@ extension Acoustics.Voice {
     ///   and are pulled toward it as the tension rises (as Riede, Thomson, Titze and Goller 2019, PLoS Biol. 17,
     ///   e2006507, Fig. 4, found a shorter trachea raises the pitch).
     public static var rooster: Self {
-        let q = Rooster.tension
+        let q = 1.0
         return Self(
             tract: .uniform(
                 length: Space.Physical.metres(0.171),
@@ -32,9 +32,6 @@ extension Acoustics.Voice {
         )
     }
 
-    enum Rooster {
-        static let tension = 1.0
-    }
 }
 
 extension Acoustics.Voice.Syrinx {

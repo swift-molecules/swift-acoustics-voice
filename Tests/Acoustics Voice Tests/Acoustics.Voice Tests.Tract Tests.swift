@@ -14,7 +14,7 @@ extension `Acoustics.Voice Tests`.Tract {
         // f = (2n − 1) c / 4L.
         let length = 0.17
         let tract = Acoustics.Voice.Tract.uniform(length: Base.metres(length), area: Base.area(3e-4))
-        let formants = tract.formants(count: 5, air: Base.air, mouth: .open)
+        let formants = tract.formants(count: Cardinal(5), air: Base.air, mouth: .open)
         #expect(formants.count == 5)
         for (n, formant) in formants.enumerated() {
             let exact = Double(2 * n + 1) * Base.c / (4 * length)
@@ -26,14 +26,8 @@ extension `Acoustics.Voice Tests`.Tract {
     func `Two tubes ring where their impedances match`() throws {
         // Closed at the source, open at the mouth: A₁ tan(kL₁) = A₂ cot(kL₂), solved by bisection.
         let (l1, l2, a1, a2) = (0.09, 0.08, 1e-4, 7e-4)
-        let tract = Acoustics.Voice.Tract(
-            length: Base.metres(l1 + l2),
-            areas: [
-                Base.area(a1), Base.area(a1), Base.area(a1), Base.area(a1), Base.area(a1), Base.area(a1),
-                Base.area(a1), Base.area(a1), Base.area(a1),
-                Base.area(a2), Base.area(a2), Base.area(a2), Base.area(a2), Base.area(a2), Base.area(a2),
-                Base.area(a2), Base.area(a2),
-            ])
+        let areas = Array(repeating: Base.area(a1), count: 9) + Array(repeating: Base.area(a2), count: 8)
+        let tract = Acoustics.Voice.Tract(length: Base.metres(l1 + l2), areas: areas)
         func g(_ f: Double) -> Double {
             let k = 2 * Double.pi * f / Base.c
             return a1 * Double.sin(k * l1) * Double.sin(k * l2) - a2 * Double.cos(k * l1) * Double.cos(k * l2)
@@ -51,7 +45,7 @@ extension `Acoustics.Voice Tests`.Tract {
             }
             f += 5
         }
-        let formants = tract.formants(count: 4, air: Base.air, mouth: .open)
+        let formants = tract.formants(count: Cardinal(4), air: Base.air, mouth: .open)
         #expect(formants.count == 4)
         for (formant, e) in zip(formants, exact) {
             #expect(Base.error(formant.underlying, e) < 0.003, "\(formant.underlying) Hz, exact \(e)")
@@ -67,7 +61,7 @@ extension `Acoustics.Voice Tests`.Tract {
             length: Base.metres(length),
             area: Base.area(Double.pi * radius * radius)
         )
-        let first = tract.formants(count: 1, air: Base.air, mouth: .radiating)[0].underlying
+        let first = tract.formants(count: Cardinal(1), air: Base.air, mouth: .radiating)[0].underlying
         let exact = Base.c / (4 * (length + 8 * radius / (3 * Double.pi)))
         #expect(Base.error(first, exact) < 0.003, "\(first) Hz, exact \(exact)")
         #expect(first < Base.c / (4 * length))
@@ -77,8 +71,8 @@ extension `Acoustics.Voice Tests`.Tract {
     func `Formants scale inversely with the tract's length`() {
         let short = Acoustics.Voice.Tract(length: Base.metres(0.1), areas: [Base.area(1e-4), Base.area(4e-4)])
         let long = Acoustics.Voice.Tract(length: Base.metres(0.2), areas: [Base.area(4e-4), Base.area(16e-4)])
-        let a = short.formants(count: 3, air: Base.air, mouth: .open)
-        let b = long.formants(count: 3, air: Base.air, mouth: .open)
+        let a = short.formants(count: Cardinal(3), air: Base.air, mouth: .open)
+        let b = long.formants(count: Cardinal(3), air: Base.air, mouth: .open)
         for (x, y) in zip(a, b) {
             #expect(Base.error(x.underlying, 2 * y.underlying) < 0.003)
         }

@@ -34,7 +34,7 @@ extension `Acoustics.Voice Tests`.Animal {
     func `The dog's formant dispersion is a growl's and a bark's`() {
         // Threatening growls, 795 ± 170.7 Hz (Faragó et al. 2017, R. Soc. Open Sci. 4, 170134, Table S4); a
         // Malinois's bark, 744 Hz (Li et al. 2026, Vet. Sci. 13, 519, Table 1).
-        let dispersion = Self.dispersion(Acoustics.Voice.dog.tract.formants(count: 4))
+        let dispersion = Self.dispersion(Acoustics.Voice.dog.tract.formants(count: Cardinal(4)))
         #expect(Swift.abs(dispersion - 795) < 170.7, "\(dispersion) Hz")
         #expect(Base.error(dispersion, 744) < 0.1, "\(dispersion) Hz")
     }
@@ -66,7 +66,7 @@ extension `Acoustics.Voice Tests`.Animal {
     func `The donkey's formants are near a horse's`() {
         // A horse's whinny, F1–F4 = 238 ± 53, 541 ± 72, 1005 ± 85, 1332 ± 125 Hz (Briefer et al. 2015, Sci. Rep.
         // 5, 9989, Table S1); within two deviations, the tract's length being taken from their spacing.
-        let formants = Acoustics.Voice.donkey.tract.formants(count: 4).map(\.underlying)
+        let formants = Acoustics.Voice.donkey.tract.formants(count: Cardinal(4)).map(\.underlying)
         for (formant, (mean, deviation)) in zip(formants, [(238.0, 53.0), (541, 72), (1005, 85), (1332, 125)]) {
             #expect(Swift.abs(formant - mean) < 2 * deviation, "\(formant) Hz, measured \(mean)")
         }
@@ -85,7 +85,7 @@ extension `Acoustics.Voice Tests`.Animal {
     @Test
     func `The rooster's trachea rings as a tube closed at the syrinx`() {
         // f = (2n − 1) c / 4(L + 8a / 3π) for the 171 mm trachea of radius 2.9 mm.
-        let formants = Acoustics.Voice.rooster.tract.formants(count: 3)
+        let formants = Acoustics.Voice.rooster.tract.formants(count: Cardinal(3))
         let length = 0.171 + 8 * 2.9e-3 / (3 * Double.pi)
         for (n, formant) in formants.enumerated() {
             let exact = Double(2 * n + 1) * Base.c / (4 * length)
@@ -98,7 +98,7 @@ extension `Acoustics.Voice Tests`.Animal {
         // Crows' most distinct band, 1737 ± 60 Hz in White Leghorns' last syllable and 1974–2426 Hz in red
         // junglefowl (Wright et al. 2025, Phil. Trans. R. Soc. B 380, 20240199, Table 2): between 1.5 and 2.5 kHz.
         let crow = Self.render(.rooster)
-        let resonance = Acoustics.Voice.rooster.tract.formants(count: 1)[0].underlying
+        let resonance = Acoustics.Voice.rooster.tract.formants(count: Cardinal(1))[0].underlying
         let last = Self.stretch(crow, 0.66, 1.47)
         let f0 = Base.fundamental(last, rate: Self.rate, low: 150, high: 1500)
         #expect(f0 > 300 && f0 < resonance, "\(f0) Hz, resonance \(resonance) Hz")

@@ -13,8 +13,10 @@ extension Acoustics.Voice {
     ///   2015, Table S1), and the "haw" near 130 Hz; the haw's pitch is assumed. The hee is drawn in by a real
     ///   donkey (Browning and Scheifele 2001, J. Acoust. Soc. Am. 110, 2654, abstract); here both are blown out.
     public static var donkey: Self {
-        let hee = (tension: (Donkey.hee, 1.1 * Donkey.hee), mouth: (6e-4, 12e-4))
-        let haw = (tension: (Donkey.haw, 0.8 * Donkey.haw), mouth: (16e-4, 10e-4))
+        let high = 5.0
+        let low = 1.82
+        let hee = (tension: (high, 1.1 * high), mouth: (6e-4, 12e-4))
+        let haw = (tension: (low, 0.8 * low), mouth: (16e-4, 10e-4))
         return Self(
             tract: .uniform(length: Space.Physical.metres(0.47), area: Area<Space.Physical>.amount(20e-4)),
             source: .folds(.human.scaled(by: 24.0 / 14.0)),
@@ -30,8 +32,4 @@ extension Acoustics.Voice {
         )
     }
 
-    enum Donkey {
-        static let hee = 5.0
-        static let haw = 1.82
-    }
 }

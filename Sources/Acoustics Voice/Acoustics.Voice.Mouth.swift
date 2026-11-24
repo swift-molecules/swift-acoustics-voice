@@ -1,5 +1,5 @@
-extension Acoustics.Voice.Tract {
-    /// How the tube ends at the mouth.
+extension Acoustics.Voice {
+    /// How a tract ends at the mouth.
     public enum Mouth: Hashable, Sendable {
         /// An ideal open end: no pressure, every wave reflected inverted.
         case open

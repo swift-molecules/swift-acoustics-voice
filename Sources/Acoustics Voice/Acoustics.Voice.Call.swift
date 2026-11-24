@@ -5,35 +5,10 @@ extension Acoustics.Voice {
     /// at, and how wide it opens its mouth, each straight between points.
     public struct Call: Hashable, Sendable {
         /// In time order, the first at zero. Before the first and after the last, the nearest holds.
-        public var points: [Point]
+        public var points: [Acoustics.Voice.Moment]
 
-        public init(points: [Point]) {
+        public init(points: [Acoustics.Voice.Moment]) {
             self.points = points
-        }
-    }
-}
-
-extension Acoustics.Voice.Call {
-    /// One moment of a call.
-    public struct Point: Hashable, Sendable {
-        public var time: Time.Duration.Value<Double>
-        /// Below the source: from the lungs, or from the air sacs of a bird.
-        public var pressure: Pressure.Value<Double>
-        /// The source's tension Q, one for its values as given.
-        public var tension: Double
-        /// The area of the tract's last piece, at the mouth.
-        public var mouth: Area<Space.Physical>.Value<Double>
-
-        public init(
-            time: Time.Duration.Value<Double>,
-            pressure: Pressure.Value<Double>,
-            tension: Double,
-            mouth: Area<Space.Physical>.Value<Double>
-        ) {
-            self.time = time
-            self.pressure = pressure
-            self.tension = tension
-            self.mouth = mouth
         }
     }
 }
@@ -61,5 +36,38 @@ extension Acoustics.Voice.Call {
         }
         guard let last = points.last else { return (0, 1, 0) }
         return (last.pressure.underlying, last.tension, last.mouth.underlying)
+    }
+}
+
+extension Acoustics.Voice.Call {
+    /// Builds a call from phrases, each held at one pressure, rising and falling at its ends.
+    static func phrases(
+        _ phrases: [(start: Double, end: Double, pressure: Double, tension: (Double, Double), mouth: (Double, Double))],
+        ramp: Double
+    ) -> Self {
+        var points: [Acoustics.Voice.Moment] = [
+            Acoustics.Voice.Moment(
+                time: Time.Duration.amount(0),
+                pressure: Pressure.pascals(0),
+                tension: phrases.first?.tension.0 ?? 1,
+                mouth: Area<Space.Physical>.amount(phrases.first?.mouth.0 ?? 1e-4)
+            )
+        ]
+        for phrase in phrases {
+            func point(_ time: Double, _ pressure: Double, _ w: Double) -> Acoustics.Voice.Moment {
+                Acoustics.Voice.Moment(
+                    time: Time.Duration.amount(time),
+                    pressure: Pressure.pascals(pressure),
+                    tension: phrase.tension.0 + w * (phrase.tension.1 - phrase.tension.0),
+                    mouth: Area<Space.Physical>.amount(phrase.mouth.0 + w * (phrase.mouth.1 - phrase.mouth.0))
+                )
+            }
+            let span = phrase.end - phrase.start
+            points.append(point(phrase.start, 0, 0))
+            points.append(point(phrase.start + ramp, phrase.pressure, ramp / span))
+            points.append(point(phrase.end - ramp, phrase.pressure, 1 - ramp / span))
+            points.append(point(phrase.end, 0, 1))
+        }
+        return Self(points: points)
     }
 }

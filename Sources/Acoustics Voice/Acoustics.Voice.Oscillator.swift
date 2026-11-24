@@ -30,6 +30,7 @@ extension Acoustics.Voice.Oscillator {
         switch source {
         case .folds(let folds):
             return step(folds, pressure: pressure, tension: tension, guide: guide, interval: interval)
+
         case .syrinx(let syrinx):
             return step(syrinx, pressure: pressure, tension: tension, guide: guide, interval: interval)
         }
